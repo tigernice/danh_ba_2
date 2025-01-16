@@ -24,7 +24,6 @@ class _ContactListScreenState extends State<ContactListScreen> {
 
   @override
   void dispose() {
-
     print("hehehe dispose");
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
@@ -32,7 +31,7 @@ class _ContactListScreenState extends State<ContactListScreen> {
   }
 
   void _onSearchChanged() {
-    // Không cần setState, vì ListenableBuilder sẽ tự động cập nhật UI
+    print("hehehe _onSearchChanged");
     _viewModel.searchContacts(_searchController.text);
   }
 
@@ -40,85 +39,92 @@ class _ContactListScreenState extends State<ContactListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: 'Tìm kiếm...',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.grey),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey, width: 1.0),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue, width: 2.0),
+        title: Text('Danh bạ'), // Đổi tên ứng dụng thành "Danh bạ"
+      ),
+      body: Column(
+        children: [
+          // Ô tìm kiếm được chuyển xuống body
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                prefixIcon: Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                  icon: Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                  },
+                )
+                    : null,
+              ),
             ),
           ),
-          style: TextStyle(color: Colors.black),
-        ),
-        actions: [
-          if (_searchController.text.isNotEmpty)
-            IconButton(
-              icon: Icon(Icons.clear, color: Colors.black),
-              onPressed: () {
-                _searchController.clear();
-              },
-            ),
-        ],
-      ),
-      body: ListenableBuilder(
-        listenable: _viewModel, // Lắng nghe thay đổi từ ViewModel
-        builder: (context, _) {
-          final contacts = _searchController.text.isEmpty
-              ? _viewModel.contacts
-              : _viewModel.searchContacts(_searchController.text);
+          Expanded(
+            child: ListenableBuilder(
+              listenable: _viewModel, // Lắng nghe thay đổi từ ViewModel
+              builder: (context, _) {
+                final contacts = _searchController.text.isEmpty
+                    ? _viewModel.contacts
+                    : _viewModel.searchResults;
 
-          return contacts.isEmpty
-              ? Center(
-            child: Text(
-              'Không có danh bạ nào được lưu',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-          )
-              : ListView.builder(
-            itemCount: contacts.length,
-            itemBuilder: (context, index) {
-              final contact = contacts[index];
-              return Card(
-                elevation: 4.0, // Độ nổi của Card
-                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Khoảng cách giữa các Card
-                child: ListTile(
-                  title: Text(contact.name),
-                  subtitle: Text(contact.phone),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditContactScreen(
-                          contact: contact,
-                          viewModel: _viewModel, // Truyền ViewModel
+                return contacts.isEmpty
+                    ? Center(
+                  child: Text(
+                    'Không có danh bạ nào được lưu',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                )
+                    : ListView.builder(
+                  itemCount: contacts.length,
+                  itemBuilder: (context, index) {
+                    final contact = contacts[index];
+                    return Card(
+                      elevation: 4.0, // Độ nổi của Card
+                      margin: EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0), // Khoảng cách giữa các Card
+                      child: ListTile(
+                        title: Text(contact.name),
+                        subtitle: Text(contact.phone),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditContactScreen(
+                                contact: contact,
+                                viewModel: _viewModel, // Truyền ViewModel
+                              ),
+                            ),
+                          );
+                        },
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            // Sử dụng hàm showDeleteDialog
+                            showDeleteDialog(
+                              context: context,
+                              title: 'Xác nhận xóa',
+                              content:
+                              'Bạn có chắc chắn muốn xóa liên hệ ${contact.name}?',
+                              onDelete: () {
+                                _viewModel.deleteContact(contact.id!); // Xóa liên hệ
+                              },
+                            );
+                          },
                         ),
                       ),
                     );
                   },
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      // Sử dụng hàm showDeleteDialog
-                      showDeleteDialog(
-                        context: context,
-                        title: 'Xác nhận xóa',
-                        content: 'Bạn có chắc chắn muốn xóa liên hệ ${contact.name}?',
-                        onDelete: () {
-                          _viewModel.deleteContact(contact.id!); // Xóa liên hệ
-                        },
-                      );
-                    },
-                  ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

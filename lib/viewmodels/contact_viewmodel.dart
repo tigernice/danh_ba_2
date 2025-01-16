@@ -23,6 +23,10 @@ class ContactViewModel with ChangeNotifier {
 
   List<Contact> get contacts => _contacts;
 
+  List<Contact> _searchResults = [];
+  List<Contact> get searchResults => _searchResults;
+
+
   void addContact(Contact contact) {
     _contacts.add(contact);
     notifyListeners();
@@ -41,11 +45,17 @@ class ContactViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  List<Contact> searchContacts(String query) {
-    return _contacts
-        .where((contact) =>
-    contact.name.toLowerCase().contains(query.toLowerCase()) ||
-        contact.phone.contains(query))
-        .toList();
+
+  void searchContacts(String query) {
+    if (query.isEmpty) {
+      _searchResults = _contacts; // Nếu query rỗng, hiển thị toàn bộ danh sách
+    } else {
+      _searchResults = _contacts
+          .where((contact) =>
+      contact.name.toLowerCase().contains(query.toLowerCase()) ||
+          contact.phone.contains(query))
+          .toList();
+    }
+    notifyListeners(); // Thông báo thay đổi
   }
 }
