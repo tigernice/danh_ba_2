@@ -1,7 +1,5 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'viewmodels/contact_viewmodel.dart';
 import 'views/contact_list_screen.dart';
 
 void main() {
@@ -11,15 +9,12 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: ContactViewModel(),
-      child: MaterialApp(
+    return MaterialApp(
         title: 'Danh bạ',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
         home: ContactListScreen(),
-      ),
-    );
+      );
   }
 }
